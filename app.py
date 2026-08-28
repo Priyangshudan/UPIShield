@@ -72,6 +72,10 @@ st.markdown("""
         border-radius: 6px;
         font-size: 1.02rem;
         margin: 15px 0;
+        color: #202124
+    }
+    .explanation-box b{
+        color: #1A73E8
     }
     .factor-card {
         background: #FFFFFF;
@@ -504,7 +508,7 @@ with tab_arch:
     st.subheader("📐 UPIShield Research Architecture")
     st.markdown("""
     ### Core Problem Solved
-    Traditional fraud detection systems either rely purely on static rule sets (which fail to catch nuanced account takeovers) or heavily on machine learning behavioral profiles (which fail when a new user has zero transaction history — the cold-start problem).
+    Traditional fraud detection systems either rely purely on static rule sets (which fail to catch nuanced account takeovers) or heavily on machine learning behavioral profiles (which fail when a new user has zero transaction history).
 
     ### UPIShield Dual-Engine Solution
     UPIShield solves this by combining two complementary engines with a dynamic weighting layer:
