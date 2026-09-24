@@ -1,202 +1,157 @@
-# UPIShield: Adaptive Dual-Layer UPI Fraud Prevention Prototype
+# UPIShield: Proactive Cybercrime Intelligence & Cash-Out Prediction Framework
 
-> **Simulated Proof-of-Concept for College & Hackathon Review**  
-> *Note: This software uses 100% synthetic/simulated transaction data. It does **NOT** connect to UPI, NPCI, real banks, payment gateways, or real personal financial data.*
-
----
-
-## 📌 Project Overview & Problem Statement
-
-Unified Payments Interface (UPI) processes billions of instant, peer-to-peer and merchant transactions each month. However, real-time transaction risk scoring faces a classic dilemma:
-
-1. **Cold-Start Problem (New Users)**: Users with little or no transaction history cannot be evaluated by statistical or machine learning behavioral models because no personal baseline exists.
-2. **Account Takeover & Anomaly Misses (Established Users)**: Static, rule-based systems struggle to detect nuanced account takeovers when an attacker makes payments that seem normal in absolute terms but drastically deviate from the genuine user's habits.
-
-### The UPIShield Solution
-
-**UPIShield** bridges this gap using an **Adaptive Dual-Layer Risk Architecture**:
-- **Layer 1 (General Risk Engine)**: Evaluates absolute, immediate risk signals (e.g., high transaction amount, unregistered device, first-time beneficiary, odd midnight hours, rapid velocity) without needing prior history.
-- **Layer 2 (Personalized Behavioral Profiler)**: Establishes statistical baselines for users with sufficient history (median amount, spending range, familiar devices, trusted beneficiaries, typical active hours, average frequency) and flags abnormal behavioral deviations.
-- **Dynamic Weighting & Explainability Layer**: Dynamically balances the two layers based on user profile depth, generates an interpretable combined risk score (0–100), and outputs human-readable rationales alongside actionable decisions (`ALLOW`, `VERIFY`, `BLOCK`).
+> **SIH Problem Statement SIH26184 — Working Prototype**  
+> *Note: This software uses 100% synthetic/simulated transaction and cybercrime data. It does **NOT** connect to live banking networks, UPI/NPCI gateways, production NCRP databases, or real personal financial records.*
 
 ---
 
-## 🏗️ System Architecture
+## 📌 1. Project Overview & SIH26184 Context
+
+Financial cyber fraud across UPI is characterized by rapid, multi-hop money routing through layered "mule" bank accounts, followed by swift physical cash withdrawals at ATMs and Customer Service Points (CSPs / BC Agents) before law enforcement or banks can respond.
+
+**UPIShield (SIH26184 Edition)** introduces a proactive intelligence and interception pipeline:
+1. **NCRP / 1930 Complaint Ingestion & Case Convergence**: Aggregates incident reports to discover multi-victim fraud operations converging onto shared mule hubs.
+2. **UPIShield Dual-Layer Risk Engine**: Computes financial risk scores combining cold-start resilient general rules (for newly created accounts) and statistical behavioral profiling (for account takeovers).
+3. **NetworkX Multi-Hop Entity Graph**: Maps victim payments, Layer-1 convergent mule hubs, Layer-2 distribution accounts, and terminal runner tokens.
+4. **Gradient-Boosted Cash-Out Location Predictor**: Uses machine learning to rank candidate ATM/CSP locations based on routing velocity, spatial proximity, and historical syndicate withdrawal density.
+5. **Interactive Leaflet GIS Hotspot Surveillance**: Displays high-risk withdrawal geofences and predicted locations on an interactive dark-mode map.
+6. **Actionable LEA / Bank / I4C Alert Dispatch**: Simulates real-time tactical alert transmission with debit freeze codes and field interception instructions.
+
+---
+
+## 🏗️ 2. System Architecture
 
 ```
-                      ┌──────────────────────────────────────────┐
-                      │    Incoming Synthetic UPI Transaction    │
-                      └────────────────────┬─────────────────────┘
-                                           │
-                    ┌──────────────────────┴──────────────────────┐
-                    ▼                                             ▼
-       ┌─────────────────────────┐                   ┌─────────────────────────┐
-       │   General Risk Engine   │                   │   Behavioral Profiler   │
-       │  (History-Independent)  │                   │   (History-Dependent)   │
-       │                         │                   │                         │
-       │ • High Value Tiers      │                   │ • Deviation from Median │
-       │ • Unregistered Device   │                   │ • Unseen Device Alert   │
-       │ • New Beneficiary       │                   │ • Unseen Beneficiary    │
-       │ • Odd Hours (1-5 AM)    │                   │ • Out-of-Profile Hours  │
-       │ • High Velocity Burst   │                   │ • Unfamiliar Location   │
-       └────────────┬────────────┘                   └────────────┬────────────┘
-                    │ (General Score: 0-100)                      │ (Behavior Score: 0-100)
-                    └──────────────────────┬──────────────────────┘
-                                           │
-                                           ▼
-                      ┌──────────────────────────────────────────┐
-                      │       Dynamic Weighting Combiner         │
-                      │  • NO_HISTORY:    100% Gen +  0% Beh     │
-                      │  • LIMITED_HIST:   70% Gen + 30% Beh     │
-                      │  • SUFFICIENT:     40% Gen + 60% Beh     │
-                      └────────────────────┬─────────────────────┘
-                                           │ (Combined Score: 0-100)
-                                           ▼
-                      ┌──────────────────────────────────────────┐
-                      │      Decision & Explainability Layer     │
-                      │  • 00 – 39: ALLOW                        │
-                      │  • 40 – 69: VERIFY (Step-Up 2FA / OTP)   │
-                      │  • 70 – 100: BLOCK                       │
-                      └──────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                 UPIShield Frontend (Next.js 14 + Tailwind)                        │
+│                                                                                                  │
+│  ┌───────────────────────┐  ┌────────────────────────┐  ┌────────────────────────────────────┐  │
+│  │   Command Dashboard   │  │   Case Investigation    │  │   ATM/CSP Cashout Predictor & GIS  │  │
+│  │   (/)                 │  │   (/cases/[id])         │  │   (/cashout)                       │  │
+│  └───────────┬───────────┘  └───────────┬────────────┘  └─────────────────┬──────────────────┘  │
+└──────────────┼──────────────────────────┼─────────────────────────────────┼─────────────────────┘
+               │                          │                                 │
+               ▼                          ▼                                 ▼
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                  FastAPI Backend (Port 8000)                                     │
+│                                                                                                  │
+│   • /api/dashboard               • /api/complaints              • /api/locations                 │
+│   • /api/cases                   • /api/cases/{id}/network      • /api/cases/{id}/predict-cashout│
+│   • /api/alerts                  • /api/health                                                   │
+└──────┬───────────────────────┬───────────────────────────────┬────────────────────────────┬──────┘
+       │                       │                               │                            │
+       ▼                       ▼                               ▼                            ▼
+┌──────────────┐       ┌──────────────┐                ┌──────────────┐             ┌──────────────┐
+│  UPIShield   │       │   NetworkX   │                │ scikit-learn │             │    SQLite    │
+│  Risk Engine │       │ Multi-Hop    │                │ GradientTree │             │  Relational  │
+│ (src/ modules)│      │ Mule Graph   │                │ Cashout Model│             │  Database    │
+└──────────────┘       └──────────────┘                └──────────────┘             └──────────────┘
 ```
 
 ---
 
-## 🧮 Risk Scoring Methodology
+## 🎯 3. Core Demonstration Flow (Vertical Slice)
 
-### 1. General Risk Scoring (0–100)
-Evaluates absolute threat signals regardless of user history:
-- **Amount Tiers**: $\ge ₹50,000$ (+35 pts), $\ge ₹25,000$ (+25 pts), $\ge ₹10,000$ (+12 pts)
-- **New Device**: +25 pts
-- **New Beneficiary**: +20 pts
-- **High-Risk Time Window (01:00 AM – 05:00 AM)**: +15 pts
-- **Rapid Velocity ($\ge 5 \text{ tx/hr}$)**: +15 pts
-- **Flagged / Unknown Location**: +15 pts
+1. **Operational Command Dashboard (`http://localhost:3000`)**:
+   - Live metrics: Total Complaints, High-Risk Cases, Amount at Risk (INR), Active ATM Hotspots.
+   - GIS Heatmap showing NCRP complaints and flagged ATM/CSP nodes across Delhi-NCR.
+   - Priority investigation list showing **Demo Case `#4401`**.
 
-### 2. Personalized Behavioral Scoring (0–100)
-Measures deviations against user's verified historical baseline:
-- **Amount Anomaly**:
-  - $> 6.0\times$ personal median/average (+45 pts)
-  - $> 3.5\times$ personal median/average (+30 pts)
-  - $> 2.0\times$ personal median/average (+15 pts)
-  - Exceeds historical personal maximum by $>50\%$ (+15 pts)
-- **Unseen Device for Established User**: +25 pts
-- **Unseen Beneficiary for Established User**: +20 pts
-- **Temporal Deviation (Outside active hours)**: +15 pts
-- **Unfamiliar Location**: +15 pts
-- **Velocity Surge ($> 2.5\times$ user frequency)**: +15 pts
+2. **Case Investigation View (`http://localhost:3000/cases/CASE-2026-4401`)**:
+   - **UPIShield Financial Risk Gauge**: Displays real-time 0–100 score (e.g., 95/100 `BLOCK`), decomposing Layer-1 General Risk (high-value burst, new device, unknown beneficiary) and Layer-2 Behavioral Deviations.
+   - **NetworkX Multi-Hop Flow**: Inspects 4-tier pipeline: Victims &rarr; L1 Mule Hub &rarr; L2 Distribution &rarr; Terminal ATM/Runner Nodes.
+   - **Convergent Complaints Table**: Lists correlated 1930 victim reports.
 
-### 3. Dynamic Weighting Formula
-$$\text{Final Score} = (\text{General Score} \times W_{\text{gen}}) + (\text{Behavioral Score} \times W_{\text{beh}})$$
+3. **ATM/CSP Cash-Out Predictor (`http://localhost:3000/cashout`)**:
+   - Gradient-Boosted ML ranking of top candidate withdrawal points (e.g. *SBI 24x7 E-Corner Rohini* - 95.0% probability, *Airtel Payments Bank CSP Laxmi Nagar* - 77.5%).
+   - Estimated withdrawal time window (e.g., *Next 30–90 mins*) and distance from last hop.
+   - Spatial map centering on candidate pins with risk-level badges.
 
-Where weights $(W_{\text{gen}}, W_{\text{beh}})$ are dynamically assigned:
-- **No History ($0 \text{ tx}$)**: $W_{\text{gen}} = 1.0$, $W_{\text{beh}} = 0.0$
-- **Limited History ($1\text{--}4 \text{ tx}$)**: $W_{\text{gen}} = 0.70$, $W_{\text{beh}} = 0.30$
-- **Sufficient History ($\ge 5 \text{ tx}$)**: $W_{\text{gen}} = 0.40$, $W_{\text{beh}} = 0.60$
-
-### 4. Decision Mapping
-- **`0 – 39` $\rightarrow$ ALLOW** (Green) — Safe transaction within baseline parameters.
-- **`40 – 69` $\rightarrow$ VERIFY** (Yellow/Orange) — Step-Up authentication recommended (Biometric / SMS OTP).
-- **`70 – 100` $\rightarrow$ BLOCK** (Red) — Severe threat or heavy behavioral deviation.
+4. **Alerts & Multi-Agency Dispatch (`http://localhost:3000/alerts`)**:
+   - Filter by stakeholder: **Police Cyber Cell (LEA)**, **Bank Fraud Nodal**, **I4C Central Registry**.
+   - Review dispatched actionable intelligence cards with debit freeze codes and tactical notes.
 
 ---
 
-## 🎯 Required Demo Scenarios
-
-The dashboard provides 1-click preset buttons to demonstrate key evaluation scenarios:
-
-| Scenario | User Cohort | Parameters | Engine Triggered | Expected Outcome |
-| :--- | :--- | :--- | :--- | :--- |
-| **Scenario 1: Normal Routine** | Established User (`user_std_01`) | ₹800, Known Device, Known Beneficiary, 14:00 | Both engines confirm safe parameters | **ALLOW** (Low Risk $\le 39$) |
-| **Scenario 2: Behavioral Anomaly** | Established User (`user_std_01`) | ₹25,000 (normal is ₹200–₹1,800), New Device, 03:30 AM | Behavioral Profiler flags major spike & unseen device | **BLOCK** / **VERIFY** (High Score) |
-| **Scenario 3: Brand New User** | Zero-History User (`user_new_01`) | ₹35,000, New Device, New Beneficiary, 02:45 AM | General Risk Engine applies 100% weight | **BLOCK** (Severe General Risk) |
-
----
-
-## 🧪 Synthetic Dataset
-
-The synthetic dataset (`data/synthetic_transactions.csv`) includes user cohorts modeled after realistic personas:
-- **Standard Regular User (`user_std_01`)**: ₹200–₹1,800 routine payments, Mumbai, active 08:00–22:00.
-- **College Student (`user_std_02`)**: Micro-transactions ₹30–₹650, Bengaluru, active 10:00–23:00.
-- **High-Net-Worth / Business (`user_hni_01`)**: ₹3,000–₹45,000 business transactions, Delhi/Gurugram.
-- **Limited History User (`user_lim_01`)**: Only 2 past transactions.
-- **Brand New User (`user_new_01`)**: 0 past transactions.
-
----
-
-## 💻 Tech Stack
-
-- **UI Dashboard**: Streamlit
-- **Data Manipulation & Math**: Pandas, NumPy
-- **Auxiliary ML**: scikit-learn (Isolation Forest baseline with graceful fallback)
-- **Testing**: Python `unittest` framework
-
----
-
-## 🚀 Installation & Running the Dashboard
+## 🚀 4. Quickstart & Running Instructions
 
 ### Prerequisites
-- Python 3.9+ (Tested on Python 3.13)
+- **Python 3.9+** (Tested on Python 3.13)
+- **Node.js 18+** / npm
 
-### 1. Install Dependencies
+### Step 1: Clone & Setup Environment
 ```bash
+# In project root:
 pip install -r requirements.txt
 ```
 
-### 2. Run Automated Tests
+### Step 2: Run All Automated Tests (19/19 Passing)
 ```bash
-python -m unittest discover -s tests -p "test_*.py" -v
+# Executes UPIShield risk engine tests, FastAPI backend API tests, & E2E test suites:
+python -m pytest
+# or: python -m unittest discover -s tests -p "test_*.py" -v
 ```
 
-### 3. Launch Streamlit Dashboard
+### Step 3: Start FastAPI Backend
 ```bash
-streamlit run app.py
+uvicorn backend.main:app --reload --port 8000
 ```
+- API Docs (Swagger UI): `http://127.0.0.1:8000/docs`
+- Health Check: `http://127.0.0.1:8000/api/health`
 
-Open your browser at `http://localhost:8501`.
+### Step 4: Start Next.js Frontend
+```bash
+cd frontend
+npm run dev
+```
+- Open your browser at: `http://localhost:3000`
+
+*(Optional) The standalone Streamlit prototype remains runnable via `streamlit run app.py`.*
 
 ---
 
-## 📂 Project Structure
+## 🧪 5. Synthetic Datasets & Reproducibility
+
+- **Database**: SQLite file at `data/sih_cybercrime.db`.
+- **Synthetic Transactions**: `data/synthetic_transactions.csv`.
+- **ML Training Pipeline**: `python backend/ml/train_cashout_model.py` generates model weights trained on synthetic spatial-temporal withdrawal histories.
+- **Seeding Script**: `python backend/synthetic_data.py` auto-populates reproducible test cases on startup.
+
+---
+
+## 📂 6. Repository Layout
 
 ```
 UPIShield/
+├── backend/                       # FastAPI Backend Service
+│   ├── main.py                    # FastAPI entrypoint & CORS
+│   ├── models.py                  # Pydantic data contracts
+│   ├── database.py                # SQLite connection & schema initialization
+│   ├── synthetic_data.py          # Synthetic NCRP complaints, cases, and mule data
+│   ├── ml/
+│   │   ├── cashout_predictor.py   # GradientBoosting cash-out predictor
+│   │   └── train_cashout_model.py # Reproducible model trainer
+│   ├── routers/                   # API routers (dashboard, cases, complaints, locations, alerts)
+│   └── services/                  # Business logic (risk_service, graph_service, prediction_service, alert_service)
 │
-├── app.py                         # Streamlit interactive UI & simulator
-├── requirements.txt               # Dependencies
-├── README.md                      # Documentation & review guide
-├── .gitignore                     # Git ignore rules
+├── frontend/                      # Next.js 14 Web Application
+│   ├── src/app/                   # App Router pages (Dashboard, Cases, Cashout, Alerts)
+│   ├── src/components/            # UI components (Navbar, RiskScoreGauge, NetworkGraphVisualizer, LeafletMap, AlertModal)
+│   ├── src/lib/                   # API client (api.ts) and TypeScript interfaces (types.ts)
+│   └── package.json               # Frontend dependencies (Next.js, Leaflet, Tailwind, Lucide)
 │
-├── src/
-│   ├── __init__.py
-│   ├── config.py                  # Thresholds, rules & dynamic weights
-│   ├── data_generator.py          # Synthetic dataset generator
-│   ├── behavior.py                # Behavioral profiler & anomaly scoring
-│   ├── risk_engine.py             # General risk engine, hybrid combiner & explainability
-│   ├── ml_engine.py               # Optional Isolation Forest ML baseline
-│   └── utils.py                   # Demo presets, badges & formatting helpers
+├── src/                           # UPIShield Core Python Risk Engine
+│   ├── risk_engine.py             # Dual-layer risk scoring & explainability
+│   ├── behavior.py                # Statistical user baseline profiling
+│   ├── config.py                  # Dynamic weighting & rule parameters
+│   └── data_generator.py          # Synthetic UPI transaction generator
 │
-├── data/
-│   └── synthetic_transactions.csv # Pre-generated synthetic transaction dataset
+├── tests/
+│   ├── test_risk_engine.py        # Core risk engine unit tests
+│   ├── test_backend_api.py        # FastAPI endpoints unit tests
+│   └── test_live_e2e.py           # End-to-end operational pipeline test
 │
-└── tests/
-    ├── __init__.py
-    └── test_risk_engine.py        # Comprehensive test suite covering all 8 criteria
+├── app.py                         # Standalone Streamlit prototype
+└── README.md                      # Documentation & review guide
 ```
-
----
-
-## ⚠️ Current Scope & Limitations
-
-- **Prototype Scope**: Designed as an interpretable research proof-of-concept (30–40% vertical slice).
-- **Synthetic Data**: Transactions are simulated; device fingerprints and geo-locations are synthetic tokens.
-- **Single-Node Execution**: Runs locally in memory without distributed databases or cloud message queues.
-
----
-
-## 🔮 Future Work & Next Phases
-
-1. **Graph-Based Fraud Ring Detection**: Integrate graph neural networks (GNNs) or NetworkX to spot mule account clusters and cyclic payment flows.
-2. **Federated Learning for Edge Risk**: Train decentralized behavioral models on mobile devices to preserve user privacy.
-3. **NPCI / ISO 20022 Integration**: Map synthetic schemas to official UPI 2.0 message formats for bank-grade staging integration.
 
