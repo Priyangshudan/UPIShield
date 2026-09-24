@@ -102,6 +102,7 @@ uvicorn backend.main:app --reload --port 8000
 ### Step 4: Start Next.js Frontend
 ```bash
 cd frontend
+npm install
 npm run dev
 ```
 - Open your browser at: `http://localhost:3000`
