@@ -33,3 +33,7 @@ data/raw/
 .DS_Store
 Thumbs.db
 data/synthetic_transactions.csv
+# Dependencies
+node_modules/
+frontend/node_modules/
+
