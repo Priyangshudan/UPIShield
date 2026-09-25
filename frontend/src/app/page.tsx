@@ -1,293 +1,51 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
+import React,{useEffect,useMemo,useState} from "react";
 import Link from "next/link";
-import { LeafletMap } from "@/components/LeafletMap";
-import { fetchDashboardStats, fetchCases } from "@/lib/api";
-import { DashboardStats, CaseDetail } from "@/lib/types";
-import {
-  ShieldAlert,
-  AlertTriangle,
-  Flame,
-  IndianRupee,
-  Layers,
-  ArrowUpRight,
-  MapPin,
-  Clock,
-  CheckCircle,
-  Activity,
-  FileText
-} from "lucide-react";
+import {Activity,AlertTriangle,ArrowUpRight,FileWarning,Flame,IndianRupee,MapPinned,RefreshCw,ShieldCheck,TimerReset} from "lucide-react";
+import {fetchCases,fetchDashboardStats} from "@/lib/api";
+import {CaseDetail,DashboardStats} from "@/lib/types";
+import {ErrorState,KpiCard,Panel,SectionHeader,Skeleton,StatusBadge} from "@/components/ui";
+import {LeafletMap} from "@/components/LeafletMap";
 
-export default function DashboardPage() {
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [cases, setCases] = useState<CaseDetail[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+function formatMoney(v:number){if(v>=10000000)return `₹${(v/10000000).toFixed(2)} Cr`;if(v>=100000)return `₹${(v/100000).toFixed(2)} L`;return `₹${v.toLocaleString("en-IN")}`}
+export default function DashboardPage(){
+ const[stats,setStats]=useState<DashboardStats|null>(null);const[cases,setCases]=useState<CaseDetail[]>([]);const[loading,setLoading]=useState(true);const[error,setError]=useState("");
+ const load=()=>{setLoading(true);Promise.all([fetchDashboardStats(),fetchCases()]).then(([s,c])=>{setStats(s);setCases(c);setError("")}).catch(e=>setError(e.message||"Unable to reach the intelligence API.")).finally(()=>setLoading(false))};useEffect(load,[]);
+ const priority=useMemo(()=>[...cases].sort((a,b)=>(b.risk_evaluation?.final_score||0)-(a.risk_evaluation?.final_score||0)).slice(0,6),[cases]);
+ const alerts=stats?.recent_alerts||[];const complaints=stats?.recent_complaints||[];
+ return <div className="space-y-6">
+   <section className="hero-shell hero-grid">
+     <div className="hero-copy">
+       <div className="eyebrow green">UPIShield / Command Centre</div>
+       <h1 className="hero-title mt-5">Detect the threat.<br/><span className="green">Predict</span> the <span className="orange-line">cash-out.</span></h1>
+       <p>Trace suspicious UPI money as it moves through mule accounts, understand the risk signal, and predict likely withdrawal endpoints before the cash is gone.</p>
+       <div className="hero-actions"><Link href="/cases/CASE-2026-4401" className="btn btn-primary h-11 rounded-full px-7 text-[10px] tracking-[.13em]">ENTER INVESTIGATION <ArrowUpRight size={14}/></Link><div className="process"><span>DETECT</span><span className="arrow">→</span><span>TRACE</span><span className="arrow">→</span><span className="active">PREDICT</span><span className="arrow">→</span><span>ALERT</span><span className="arrow">→</span><span>INTERVENE</span></div></div>
+     </div>
+     <div className="hero-visual">
+       <div className="halo"/><div className="orbit"/>
+       <img className="hero-shield" src="/upishield/shield-mascot.png" alt="UPIShield intelligence core"/>
+       <img className="hero-coin" src="/upishield/obj-coin.png" alt="UPI transaction"/>
+       <img className="hero-pin" src="/upishield/obj-pin.png" alt="Cash-out hotspot"/>
+       <img className="hero-atm" src="/upishield/obj-atm.png" alt="ATM or CSP endpoint"/>
+       <span className="object-caption caption-coin">{formatMoney(stats?.amount_at_risk||0)} · AT RISK</span>
+       <span className="object-caption caption-pin">{stats?.active_hotspots_count??0} HOTSPOTS</span>
+       <span className="object-caption caption-atm">ATM / CSP</span>
+       <span className="hero-tag"><b>●</b> LIVE RISK FIELD · SYNTHETIC TELEMETRY</span>
+     </div>
+   </section>
 
-  useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        const [dashData, casesData] = await Promise.all([
-          fetchDashboardStats(),
-          fetchCases(),
-        ]);
-        setStats(dashData);
-        setCases(casesData);
-      } catch (err: any) {
-        console.error("Dashboard load failed:", err);
-        setError(err.message || "Failed to connect to UPIShield API server.");
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
-  }, []);
-
-  return (
-    <div className="space-y-8">
-      {/* Top Hero Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 border border-slate-800/80 shadow-lg">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1.5 animate-pulse" />
-              Live Operational Command
-            </span>
-            <span className="text-xs text-slate-500 font-mono">SIH26184 Cybercrime Framework</span>
-          </div>
-          <h1 className="text-2xl font-extrabold text-slate-100 tracking-tight">
-            Proactive Financial Cybercrime & Cash-Out Defense
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-3xl">
-            Real-time NCRP complaint aggregation, dual-layer UPIShield behavioral risk scoring,
-            multi-hop mule network graph resolution, and predictive ATM/CSP location interception.
-          </p>
-        </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <Link
-            href="/cases/CASE-2026-4401"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-[0_0_20px_rgba(16,185,129,0.25)] transition-all"
-          >
-            <ShieldAlert className="w-4 h-4" />
-            <span>Launch Demo Case #4401</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      </div>
-
-      {error && (
-        <div className="p-4 rounded-xl border border-red-500/40 bg-red-500/10 text-red-300 text-xs flex items-center justify-between">
-          <span>API Server Notice: {error} (Ensure backend is running at http://127.0.0.1:8000)</span>
-          <button onClick={() => window.location.reload()} className="underline font-mono">Retry</button>
-        </div>
-      )}
-
-      {/* 4 Stat Indicator Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-            <span>Total NCRP Complaints</span>
-            <FileText className="w-4 h-4 text-blue-400" />
-          </div>
-          <div className="text-2xl font-bold text-slate-100 font-mono">
-            {stats ? stats.total_complaints : "—"}
-          </div>
-          <p className="text-[11px] text-slate-500">Triage across cybercrime categories</p>
-        </div>
-
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-            <span>High Risk Cases</span>
-            <AlertTriangle className="w-4 h-4 text-amber-400" />
-          </div>
-          <div className="text-2xl font-bold text-amber-400 font-mono">
-            {stats ? stats.high_risk_cases_count : "—"}
-          </div>
-          <p className="text-[11px] text-slate-500">Flagged with imminent cashout risk</p>
-        </div>
-
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-            <span>Predicted Hotspots</span>
-            <Flame className="w-4 h-4 text-red-400" />
-          </div>
-          <div className="text-2xl font-bold text-red-400 font-mono">
-            {stats ? stats.active_hotspots_count : "—"}
-          </div>
-          <p className="text-[11px] text-slate-500">High-probability ATM/CSP clusters</p>
-        </div>
-
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm space-y-2">
-          <div className="flex items-center justify-between text-slate-400 text-xs font-medium">
-            <span>Total Amount at Risk</span>
-            <IndianRupee className="w-4 h-4 text-emerald-400" />
-          </div>
-          <div className="text-2xl font-bold text-emerald-400 font-mono">
-            {stats ? `₹${(stats.amount_at_risk / 100000).toFixed(2)} Lakh` : "—"}
-          </div>
-          <p className="text-[11px] text-slate-500">Under multi-hop surveillance</p>
-        </div>
-      </div>
-
-      {/* Main Grid: GIS Surveillance Map + Active Cases */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Map Column (2 cols) */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-emerald-400" />
-              <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wide">
-                Live GIS Hotspot Surveillance & ATM Clusters
-              </h2>
-            </div>
-            <span className="text-[11px] text-slate-400 font-mono">Delhi-NCR Region</span>
-          </div>
-
-          <LeafletMap
-            locations={stats?.hotspot_locations || []}
-            height="420px"
-            center={[28.6139, 77.2090]}
-            zoom={12}
-          />
-
-          <div className="p-3 rounded-lg bg-slate-900/40 border border-slate-800 flex items-center justify-between text-xs text-slate-400">
-            <div className="flex items-center gap-4">
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />
-                High Risk ATM/CSP (&ge;10 incidents)
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
-                Surveilled Financial Node
-              </span>
-            </div>
-            <Link href="/cashout" className="text-emerald-400 hover:underline flex items-center gap-1 font-medium">
-              Run Model Predictions &rarr;
-            </Link>
-          </div>
-        </div>
-
-        {/* Active Cases Column (1 col) */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-amber-400" />
-              <h2 className="text-sm font-bold text-slate-200 uppercase tracking-wide">
-                High-Priority Investigations
-              </h2>
-            </div>
-            <span className="text-xs text-slate-400 font-mono">{cases.length} Cases</span>
-          </div>
-
-          <div className="space-y-3 max-h-[460px] overflow-y-auto pr-1">
-            {cases.map((c) => (
-              <Link
-                key={c.id}
-                href={`/cases/${c.id}`}
-                className={`block p-4 rounded-xl border transition-all ${
-                  c.id === "CASE-2026-4401"
-                    ? "bg-slate-900/90 border-emerald-500/40 hover:border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
-                    : "bg-slate-900/40 border-slate-800 hover:border-slate-700"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-mono text-xs font-bold text-emerald-400">{c.id}</span>
-                  <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 font-semibold">
-                    {c.status.replace(/_/g, " ")}
-                  </span>
-                </div>
-                <h3 className="text-xs font-semibold text-slate-200 line-clamp-1">{c.title}</h3>
-                <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">{c.description}</p>
-                
-                <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-800/80 text-[11px] font-mono">
-                  <span className="text-slate-400">{c.complaints.length} Convergent Complaints</span>
-                  <span className="font-bold text-slate-200">₹{c.total_amount_lost.toLocaleString("en-IN")}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Section: Recent NCRP Complaints + Recent Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Complaints Feed */}
-        <div className="p-6 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
-              <Activity className="w-4 h-4 text-blue-400" />
-              Recent NCRP / 1930 Cybercrime Complaints
-            </h3>
-            <span className="text-xs font-mono text-slate-400">Live Stream</span>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950 text-slate-400 uppercase text-[10px] font-mono border-b border-slate-800">
-                <tr>
-                  <th className="py-2.5 px-3">Ack #</th>
-                  <th className="py-2.5 px-3">Category</th>
-                  <th className="py-2.5 px-3">Victim UPI</th>
-                  <th className="py-2.5 px-3 text-right">Amount (INR)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 font-mono text-[11px]">
-                {stats?.recent_complaints.map((comp) => (
-                  <tr key={comp.id} className="hover:bg-slate-800/30">
-                    <td className="py-2.5 px-3 font-semibold text-slate-200">{comp.id}</td>
-                    <td className="py-2.5 px-3 text-slate-400">{comp.fraud_category}</td>
-                    <td className="py-2.5 px-3 text-blue-300 truncate max-w-[120px]">{comp.victim_upi}</td>
-                    <td className="py-2.5 px-3 text-right font-semibold text-emerald-400">
-                      ₹{comp.reported_amount.toLocaleString("en-IN")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Recent Transmitted Intelligence Alerts */}
-        <div className="p-6 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
-              <CheckCircle className="w-4 h-4 text-emerald-400" />
-              Active Tactical Alerts (LEA / Bank / I4C)
-            </h3>
-            <Link href="/alerts" className="text-xs text-emerald-400 hover:underline font-medium">
-              View All &rarr;
-            </Link>
-          </div>
-
-          <div className="space-y-3">
-            {stats?.recent_alerts.map((al) => (
-              <div
-                key={al.id}
-                className="p-3.5 rounded-lg bg-slate-950/60 border border-slate-800 flex items-start justify-between gap-3 text-xs"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-red-400">{al.priority}</span>
-                    <span className="text-slate-300 font-semibold">{al.case_title}</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 line-clamp-1">{al.summary}</p>
-                  <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500 pt-1">
-                    <span>Agencies: {al.target_agencies.join(", ")}</span>
-                    <span>•</span>
-                    <span>{al.dispatched_at}</span>
-                  </div>
-                </div>
-                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono uppercase shrink-0">
-                  {al.status}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+   <div className="callout-strip"><div className="label">Command Centre ↓</div><div className="meta">LIVE CASES · GIS RISK MAP · CASH-OUT PREDICTION · MULTI-AGENCY ALERTS</div></div>
+   {error&&<ErrorState message={error} retry={load}/>} 
+   <div className="flex flex-col gap-3 border-b border-[#d8ddd5] pb-5 lg:flex-row lg:items-end lg:justify-between"><div><div className="eyebrow orange">Operational overview</div><h2 className="page-title mt-2">Financial crime operations</h2><p className="page-subtitle">A single operating view for complaint convergence, risk assessment, mule-network analysis and intervention.</p></div><div className="flex items-center gap-2"><span className="hidden rounded-full border border-[#d7ddd5] bg-[#f8f8f1] px-3 py-2 mono text-[8px] uppercase tracking-[.12em] text-[#7b8781] sm:inline">DEMO · SYNTHETIC DATA</span><button onClick={load} className="btn btn-quiet"><RefreshCw size={13}/>Refresh</button></div></div>
+   <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{loading?[1,2,3,4].map(i=><Skeleton key={i} className="h-[128px]"/>):<><KpiCard label="NCRP complaints" value={stats?.total_complaints??0} detail={`${stats?.total_cases??0} correlated investigations`} icon={FileWarning} tone="cyan"/><KpiCard label="High-risk investigations" value={stats?.high_risk_cases_count??0} detail="Cases requiring analyst attention" icon={AlertTriangle} tone="red" href={priority[0]?`/cases/${priority[0].id}`:"/"}/><KpiCard label="Amount at risk" value={formatMoney(stats?.amount_at_risk||0)} detail="Across converged investigations" icon={IndianRupee} tone="amber"/><KpiCard label="Monitored hotspots" value={stats?.active_hotspots_count??0} detail="ATM / CSP locations" icon={Flame} tone="green" href="/cashout"/></>}</div>
+   <div className="grid gap-5 xl:grid-cols-[minmax(0,1.62fr)_390px]">
+     <Panel noPad className="overflow-hidden"><SectionHeader eyebrow="Spatial surveillance" title="Financial-node risk map" description="Monitored withdrawal points and historical fraud density across the synthetic operating area." action={<Link className="section-link" href="/cashout">Open cash-out surveillance <ArrowUpRight size={12} className="inline ml-1"/></Link>}/>{loading?<Skeleton className="h-[445px] rounded-none"/>:<><div className="map-frame"><LeafletMap locations={stats?.hotspot_locations||[]} height="445px"/></div><div className="flex flex-wrap items-center gap-5 border-t border-[#dfe3dc] bg-[#fbfaf5] px-4 py-3"><span className="flex items-center gap-2 text-[8px] uppercase tracking-[.13em] text-[#718079]"><i className="h-2 w-2 rounded-full bg-[#c9483d]"/>High historical activity</span><span className="flex items-center gap-2 text-[8px] uppercase tracking-[.13em] text-[#087b83]"><i className="h-2 w-2 rounded-full bg-[#28b7bd]"/>Monitored node</span><span className="ml-auto mono text-[8px] text-[#7a8781]">Delhi-NCR · synthetic telemetry</span></div></>}</Panel>
+     <Panel noPad><SectionHeader eyebrow="Analyst queue" title="Priority investigations" action={<span className="mono text-[9px] text-[#7a8781]">{priority.length} shown</span>}/><div className="divide-y divide-[#e0e4dc]">{loading?[1,2,3,4,5].map(i=><div key={i} className="p-4"><Skeleton className="h-[62px]"/></div>):priority.map((c,i)=><Link key={c.id} href={`/cases/${c.id}`} className="block px-4 py-4 transition hover:bg-[#f3f5ee]"><div className="flex items-center gap-2"><span className="mono text-[8px] text-[#087b48]">0{i+1}</span><span className="mono text-[9px] text-[#7b8882]">{c.id}</span><span className="ml-auto"><StatusBadge value={c.risk_evaluation?.decision||c.status}/></span></div><div className="mt-2 line-clamp-1 text-[11px] font-semibold text-[#18342a]">{c.title}</div><div className="mt-2 flex items-center justify-between text-[9px] text-[#77847e]"><span>{formatMoney(c.total_amount_lost)} exposed</span><span>{c.complaints.length} linked complaints</span></div></Link>)}</div><div className="border-t border-[#dfe3dc] p-3"><Link href={priority[0]?`/cases/${priority[0].id}`:"/"} className="flex items-center justify-center gap-2 border border-[#cfd7ce] bg-white py-2.5 text-[9px] font-bold uppercase tracking-[.12em] text-[#4f6259] hover:bg-[#f4f6ef]">Open investigations <ArrowUpRight size={12}/></Link></div></Panel>
+   </div>
+   <div className="grid gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(320px,.75fr)]">
+     <Panel noPad><SectionHeader eyebrow="Recent activity" title="Complaint and response activity" description="Latest records flowing through the intelligence pipeline."/><div className="table-wrap"><table className="data-table"><thead><tr><th>Complaint</th><th>Category</th><th>City</th><th>Amount</th><th>Status</th></tr></thead><tbody>{loading?[1,2,3,4].map(i=><tr key={i}><td colSpan={5}><Skeleton className="h-5 w-full"/></td></tr>):complaints.slice(0,6).map(c=><tr key={c.id}><td><div className="mono text-[#087b48]">{c.id}</div><div className="mt-1 text-[9px] text-[#77847e]">{c.victim_name}</div></td><td>{c.fraud_category}</td><td>{c.city}</td><td className="mono text-[#42574d]">₹{c.reported_amount.toLocaleString("en-IN")}</td><td><StatusBadge value={c.status}/></td></tr>)}</tbody></table></div></Panel>
+     <Panel><SectionHeader eyebrow="System health" title="Operational services"/><div className="mt-2 divide-y divide-[#e0e4dc]">{[["Risk engine","Dual-layer scoring"],["Network resolver","Multi-hop graph"],["Cash-out model","Gradient-tree prediction"],["GIS telemetry","ATM / CSP surveillance"]].map(([name,note])=><div key={name} className="flex items-center justify-between py-3"><div><div className="text-[10px] font-semibold text-[#203d31]">{name}</div><div className="mt-1 text-[8px] text-[#7b8882]">{note}</div></div><span className="flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-[.1em] text-[#237a50]"><i className="h-1.5 w-1.5 rounded-full bg-[#1d9a61]"/>Operational</span></div>)}</div><div className="mt-3 border-t border-[#e0e4dc] pt-3"><div className="flex items-center gap-2 text-[9px] text-[#75827c]"><TimerReset size={13}/><span>Telemetry refresh is controlled by the connected API.</span></div></div></Panel>
+   </div>
+   <div className="grid gap-3 md:grid-cols-3"><Panel><div className="flex items-center gap-3"><div className="metric-icon text-[#087b48]"><ShieldCheck size={15}/></div><div><div className="text-[9px] uppercase tracking-[.14em] text-[#7b8882]">Decision layer</div><div className="mt-1 text-[11px] font-semibold text-[#203d31]">Explainable risk scoring</div></div></div></Panel><Panel><div className="flex items-center gap-3"><div className="metric-icon text-[#a46b17]"><MapPinned size={15}/></div><div><div className="text-[9px] uppercase tracking-[.14em] text-[#7b8882]">Surveillance</div><div className="mt-1 text-[11px] font-semibold text-[#203d31]">Predictive cash-out routing</div></div></div></Panel><Panel><div className="flex items-center gap-3"><div className="metric-icon text-[#b64036]"><Activity size={15}/></div><div><div className="text-[9px] uppercase tracking-[.14em] text-[#7b8882]">Response</div><div className="mt-1 text-[11px] font-semibold text-[#203d31]">Multi-agency alert dispatch</div></div></div></Panel></div>
+ </div>
 }
-
