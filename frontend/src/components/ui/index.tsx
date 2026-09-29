@@ -539,9 +539,6 @@ function Topbar({ openMobile }: { openMobile: () => void }) {
           >
             <Search size={14} />
             <span>Search case, mule account, UPI...</span>
-            <kbd className="ml-auto border border-line bg-paper-100 px-1.5 py-0.5 mono text-[9px] text-ink-soft">
-              ⌘K
-            </kbd>
           </button>
 
           {/* System status pill */}
