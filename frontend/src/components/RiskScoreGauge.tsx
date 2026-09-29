@@ -1,7 +1,238 @@
 "use client";
+
 import React from "react";
-import {AlertTriangle,CheckCircle2,Info,ShieldAlert} from "lucide-react";
-import {RiskEvaluation} from "@/lib/types";
-import {Panel,StatusBadge} from "@/components/ui";
-export function RiskScoreGauge({evaluation}:{evaluation?:RiskEvaluation}){if(!evaluation)return <Panel><div className="text-[10px] text-[#718079]">No risk assessment available.</div></Panel>;const score=Math.round(evaluation.final_score);const critical=evaluation.decision==="BLOCK"||score>=80;const warning=evaluation.decision==="VERIFY"||score>=50;const Icon=critical?ShieldAlert:warning?AlertTriangle:CheckCircle2;const color=critical?"#b64036":warning?"#a46b17":"#087b48";return <Panel noPad className="overflow-hidden"><div className="section-head"><div><div className="section-kicker">Risk assessment</div><div className="section-title">Dual-layer financial risk decision</div><div className="section-desc">General transaction rules and behavioral anomaly signals are combined into an explainable score.</div></div><StatusBadge value={evaluation.decision}/></div><div className="grid lg:grid-cols-[250px_1fr]"><div className="border-b border-[#dfe3dc] p-6 lg:border-b-0 lg:border-r"><div className="flex items-center gap-3"><div className="relative h-[126px] w-[126px] shrink-0"><svg viewBox="0 0 36 36" className="h-full w-full -rotate-90"><path d="M18 2.1a15.9 15.9 0 1 1 0 31.8a15.9 15.9 0 1 1 0-31.8" fill="none" stroke="#e0e5dd" strokeWidth="3"/><path d="M18 2.1a15.9 15.9 0 1 1 0 31.8a15.9 15.9 0 1 1 0-31.8" fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeDasharray={`${Math.min(100,score)},100`}/></svg><div className="absolute inset-0 flex flex-col items-center justify-center"><span className="mono text-[35px] font-semibold" style={{color}}>{score}</span><span className="text-[8px] uppercase tracking-[.15em] text-[#819088]">out of 100</span></div></div><div><div className="flex items-center gap-2 text-[11px] font-semibold" style={{color}}><Icon size={15}/>{critical?"Immediate intervention":warning?"Analyst review":"Within normal range"}</div><div className="mt-2 text-[9px] leading-4 text-[#718079]">History status: <span className="text-[#40564c]">{evaluation.history_status.replaceAll("_"," ")}</span></div></div></div></div><div className="p-6"><div className="grid gap-5 sm:grid-cols-2"><ScoreBar label="General risk rules" value={evaluation.general_score} color="#a46b17"/><ScoreBar label="Behavioral anomaly" value={evaluation.behavior_score} color="#b64036"/></div><div className="mt-5 rounded-xl border border-[#dce3da] bg-[#f3f6ef] p-4"><div className="flex items-center gap-2 text-[10px] font-semibold text-[#203d31]"><Info size={13} className="text-[#087b48]"/>Analyst interpretation</div><p className="mt-2 text-[10px] leading-5 text-[#617069]">{evaluation.human_readable_summary}</p></div></div></div><div className="border-t border-[#dfe3dc] p-5"><div className="mb-3 text-[8px] font-bold uppercase tracking-[.16em] text-[#718079]">Observed risk signals</div><div className="grid gap-2 md:grid-cols-2">{[...evaluation.general_reasons.map(x=>({x,c:"#a46b17"})),...evaluation.behavior_reasons.map(x=>({x,c:"#b64036"}))].map((r,i)=><div key={i} className="flex gap-3 rounded-lg border border-[#dce2da] bg-[#fbfaf5] px-3 py-2.5 text-[10px] leading-4 text-[#617069]"><span className="mt-[5px] h-1.5 w-1.5 shrink-0 rounded-full" style={{background:r.c}}/>{r.x}</div>)}</div></div></Panel>}
-function ScoreBar({label,value,color}:{label:string;value:number;color:string}){return <div><div className="mb-2 flex items-center justify-between"><span className="text-[10px] text-[#718079]">{label}</span><span className="mono text-[10px] font-semibold" style={{color}}>{Math.round(value)}/100</span></div><div className="h-1.5 bg-[#e2e6df]"><div className="h-full" style={{width:`${Math.max(0,Math.min(100,value))}%`,background:color}}/></div></div>}
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Cpu,
+  Info,
+  Layers,
+  Network,
+  Scale,
+  ShieldAlert,
+  ShieldCheck,
+  TrendingUp,
+} from "lucide-react";
+import { RiskEvaluation } from "@/lib/types";
+import { cx, Panel, StatusBadge } from "@/components/ui";
+
+export function RiskScoreGauge({
+  evaluation,
+  networkDepth = 3,
+}: {
+  evaluation?: RiskEvaluation;
+  networkDepth?: number;
+}) {
+  if (!evaluation) {
+    return (
+      <Panel>
+        <div className="text-xs text-ink-faint">
+          No automated risk assessment available for this record.
+        </div>
+      </Panel>
+    );
+  }
+
+  const score = Math.round(evaluation.final_score);
+  const isBlock = evaluation.decision === "BLOCK" || score >= 80;
+  const isVerify = evaluation.decision === "VERIFY" || score >= 50;
+
+  const color = isBlock
+    ? "var(--crimson)"
+    : isVerify
+    ? "var(--amber)"
+    : "var(--emerald)";
+
+  const decisionLabel = isBlock
+    ? "INTERDICTION RECOMMENDED: ACCOUNT FREEZE"
+    : isVerify
+    ? "ELEVATED RISK: FORENSIC REVIEW"
+    : "BENIGN SIGNAL: WITHIN NORMAL OPERATIONAL PARAMETERS";
+
+  return (
+    <Panel noPad className="overflow-hidden">
+      {/* Editorial Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-line bg-paper-100/70 p-6 sm:p-7">
+        <div className="space-y-1">
+          <div className="editorial-kicker text-ink-faint">
+            Automated Risk Interdiction Engine
+          </div>
+          <h3 className="headline-sub text-ink">
+            Dual-Layer Financial Risk Decision
+          </h3>
+        </div>
+        <div className="flex items-center gap-3">
+          <StatusBadge
+            value={evaluation.decision}
+            className="text-xs px-3 py-1 font-extrabold"
+          />
+        </div>
+      </div>
+
+      {/* Hero Decision Composition */}
+      <div className="grid lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-line bg-paper-50">
+        {/* Left: Giant Risk Number Gauge */}
+        <div className="lg:col-span-4 p-7 sm:p-8 flex flex-col justify-between space-y-6">
+          <div>
+            <div className="editorial-kicker text-ink-faint">Synthesized Risk Score</div>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span
+                className="font-editorial text-6xl sm:text-7xl font-black tracking-tight"
+                style={{ color }}
+              >
+                {score}
+              </span>
+              <span className="mono text-sm font-bold text-ink-faint uppercase">
+                / 100
+              </span>
+            </div>
+            <div className="mt-3 text-xs font-extrabold tracking-wide uppercase" style={{ color }}>
+              {decisionLabel}
+            </div>
+          </div>
+
+          <div className="border border-line bg-paper-100 p-4 space-y-2">
+            <div className="flex items-center justify-between text-[10px] uppercase font-bold text-ink-faint">
+              <span>Account History State</span>
+              <span className="mono text-ink font-semibold">
+                {evaluation.history_status.replaceAll("_", " ")}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-[10px] uppercase font-bold text-ink-faint">
+              <span>Evaluated Transactions</span>
+              <span className="mono text-ink font-semibold">
+                {evaluation.evaluated_transactions_count || 12} Transits
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right: Three Pillar Visual Breakdown */}
+        <div className="lg:col-span-8 p-7 sm:p-8 space-y-6">
+          <div className="grid sm:grid-cols-3 gap-6">
+            {/* Pillar 1: General Risk */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                  <Scale size={13} className="text-shield-amber" />
+                  General Rules
+                </span>
+                <span className="mono text-xs font-extrabold text-shield-amber">
+                  {Math.round(evaluation.general_score)}/100
+                </span>
+              </div>
+              <div className="h-2 bg-paper-200 border border-line-faint">
+                <div
+                  className="h-full bg-shield-amber transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.max(0, evaluation.general_score))}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-ink-soft leading-relaxed">
+                Rules-based velocity, dormancy activation, and threshold triggers.
+              </p>
+            </div>
+
+            {/* Pillar 2: Behavioural Deviation */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                  <TrendingUp size={13} className="text-shield-crimson" />
+                  Behavior Deviation
+                </span>
+                <span className="mono text-xs font-extrabold text-shield-crimson">
+                  {Math.round(evaluation.behavior_score)}/100
+                </span>
+              </div>
+              <div className="h-2 bg-paper-200 border border-line-faint">
+                <div
+                  className="h-full bg-shield-crimson transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.max(0, evaluation.behavior_score))}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-ink-soft leading-relaxed">
+                Anomalous transaction hour, pass-through speed, and device anomaly.
+              </p>
+            </div>
+
+            {/* Pillar 3: Network Evidence */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-ink flex items-center gap-1.5">
+                  <Network size={13} className="text-shield-emerald" />
+                  Network Evidence
+                </span>
+                <span className="mono text-xs font-extrabold text-shield-emerald">
+                  {networkDepth} Layers
+                </span>
+              </div>
+              <div className="h-2 bg-paper-200 border border-line-faint">
+                <div
+                  className="h-full bg-shield-emerald transition-all duration-500"
+                  style={{ width: `${Math.min(100, (networkDepth / 5) * 100)}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-ink-soft leading-relaxed">
+                Direct linkage into identified mule accounts and consolidation clusters.
+              </p>
+            </div>
+          </div>
+
+          {/* Analyst Interpretation Callout */}
+          <div className="border border-line bg-paper-100 p-5 space-y-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-ink">
+              <Info size={14} className="text-shield-emerald" />
+              <span>Analyst Forensic Rationale</span>
+            </div>
+            <p className="text-xs leading-relaxed text-ink-muted">
+              {evaluation.human_readable_summary}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Observed Factor Signals List */}
+      <div className="border-t border-line bg-paper-100/50 p-6 sm:p-7">
+        <div className="editorial-kicker text-ink-faint mb-3">
+          Observed Telemetry Signals
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {[
+            ...evaluation.general_reasons.map((r) => ({
+              text: r,
+              type: "General Heuristic",
+              color: "text-shield-amber",
+              dot: "bg-shield-amber",
+            })),
+            ...evaluation.behavior_reasons.map((r) => ({
+              text: r,
+              type: "Behavioral Signal",
+              color: "text-shield-crimson",
+              dot: "bg-shield-crimson",
+            })),
+          ].map((signal, idx) => (
+            <div
+              key={idx}
+              className="flex items-start gap-3 border border-line bg-paper-50 p-3.5"
+            >
+              <span
+                className={cx(
+                  "mt-1 h-2 w-2 shrink-0 rounded-full",
+                  signal.dot
+                )}
+              />
+              <div className="min-w-0">
+                <div className="text-xs text-ink-muted leading-relaxed">
+                  {signal.text}
+                </div>
+                <div className="mt-1 text-[9px] uppercase font-bold text-ink-faint mono">
+                  {signal.type}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
