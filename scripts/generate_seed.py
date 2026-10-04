@@ -60,7 +60,8 @@ out.append('')
 # Historical cashouts
 for r in conn.execute('SELECT * FROM historical_cashouts'):
     m_acc = r['mule_account_id'].replace("'", "''")
-    out.append(f"INSERT INTO public.historical_cashouts (id, location_id, amount, withdrawal_time, distance_from_last_hop_km, mule_account_id, successful) VALUES ('{r['id']}', '{r['location_id']}', {r['amount']}, '{r['withdrawal_time']}', {r['distance_from_last_hop_km']}, '{m_acc}', {r['successful']});")
+    out.append(f"INSERT INTO public.historical_cashouts (id, location_id, amount, withdrawal_time, distance_from_last_hop_km, mule_account_id, successful, last_hop_lat, last_hop_lon) VALUES ('{r['id']}', '{r['location_id']}', {r['amount']}, '{r['withdrawal_time']}', {r['distance_from_last_hop_km']}, '{m_acc}', {r['successful']}, {r['last_hop_lat']}, {r['last_hop_lon']});")
+
 
 out.append('')
 

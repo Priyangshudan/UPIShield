@@ -1,0 +1,751 @@
+<USER_REQUEST>
+We are doing the FINAL ML/data change for the UPIShield SIH 2026 project.
+
+IMPORTANT:
+Do not make any frontend redesigns.
+Do not change the Vercel + Supabase production architecture.
+Do not add FastAPI or another Python production server.
+Do not change the 7-feature production inference architecture.
+Do not optimize specifically to achieve a target metric.
+Do not fabricate or hard-code better evaluation results.
+
+The purpose of this task is to improve the synthetic dataset so the cash-out location prediction problem is larger, more statistically meaningful, and less dominated by simple spatial proximity.
+
+After this change, we will freeze the ML implementation, generate the final results/report, and push the changes to GitHub.
+
+==================================================
+1. FIRST: INSPECT THE CURRENT IMPLEMENTATION
+==================================================
+
+Before modifying anything, inspect the current local repository, NOT the GitHub version.
+
+Identify:
+
+- current cash-out historical-event generator
+- current candidate-location generator
+- current synthetic cases generator/seed data
+- current locations/ATM/CSP generator
+- current training script
+- current evaluation script
+- current ablation script
+- current GradientBoostingClassifier configuration
+- current exported production model artifact
+- current Python feature engineering
+- current TypeScript feature engineering
+- current Supabase Edge Function inference code
+- current tests
+- current database seed/migration files used to populate cases and locations
+
+Do not assume filenames from an older version. Use the current local repository state.
+
+Preserve all existing interfaces that the frontend and Supabase functions depend on.
+
+==================================================
+2. CURRENT PROBLEM WE ARE FIXING
+==================================================
+
+The current synthetic benchmark has approximately:
+
+- 250 historical cash-out events
+- 8 candidate locations per event
+- 250 positives / 1,750 negatives
+
+The current benchmark is spatially easy.
+
+Existing ablation findings:
+
+Pure distance ranking:
+- Recall@1 = 0.9000
+- Recall@3 = 1.0000
+- MRR = 0.9467
+
+GBDT distance-only:
+- Recall@1 = 0.9200
+- Recall@3 = 1.0000
+- MRR = 0.9567
+
+Full GBDT:
+- Recall@1 = 0.9000
+- Recall@3 = 1.0000
+- MRR = 0.9467
+- ROC-AUC = 0.9910
+- PR-AUC = 0.9517
+
+The synthetic generator currently makes the true cash-out location strongly correlated with the nearest location.
+
+This is NOT a bug.
+
+We want to improve the synthetic dataset so that spatial proximity remains an important signal, but contextual features can matter in realistic ambiguous cases.
+
+==================================================
+3. EXPAND THE CASH-OUT EVENT DATASET
+==================================================
+
+Increase the historical cash-out event dataset substantially.
+
+Target approximately:
+
+- 2,000 historical cash-out events
+
+You may choose a nearby number if required by the existing architecture, but it must be at least 1,500 events.
+
+Maintain deterministic reproducibility using a fixed random seed.
+
+Do NOT simply duplicate the original 250 events.
+
+Every generated event must have independently sampled/varied:
+
+- case/event ID
+- event timestamp
+- case amount
+- last-hop latitude
+- last-hop longitude
+- cash-out hour
+- relevant event/context attributes
+- actual cash-out location
+- candidate-location set
+
+Ensure realistic variation across:
+
+- low/medium/high transaction amounts
+- different hours
+- different geographic regions
+- different mule/runner movement distances
+- different ATM/CSP mixes
+- different historical fraud densities
+
+Preserve the existing CASE-2026-4401 or other existing demo cases required by the frontend.
+
+Do not break existing demo IDs.
+
+==================================================
+4. EXPAND THE CANDIDATE LOCATION SPACE
+==================================================
+
+Increase candidate locations from the current 8-per-event setup.
+
+Target approximately:
+
+- 12 to 15 candidate locations per event
+
+Keep both:
+
+- ATM
+- CSP
+
+candidate types.
+
+Candidates should have meaningful variation in:
+
+- latitude/longitude
+- historical fraud count
+- CCTV availability
+- location type
+- bank/provider
+- geographic proximity
+
+Do not generate candidates so far away that the answer becomes trivial.
+
+The candidate set should contain realistic competing locations, including several locations within plausible travel distance.
+
+==================================================
+5. REDUCE THE SYNTHETIC SPATIAL BIAS
+==================================================
+
+This is the most important part.
+
+Do NOT force the true cash-out location to always be the nearest candidate.
+
+The actual cash-out location should be generated from a realistic latent decision process involving multiple factors.
+
+Spatial proximity should remain important, but contextual features should have genuine opportunity to influence the true location.
+
+Use a probabilistic/latent mechanism rather than a hard-coded deterministic rule.
+
+The mechanism should consider, where appropriate:
+
+- distance_km
+- historical_fraud_count
+- cctv_available
+- is_csp
+- case_amount
+- cashout_hour
+- other latent behavioral factors if they already exist in the project
+
+The actual location should sometimes be:
+
+- nearest
+- second-nearest
+- third-nearest
+- another plausible candidate
+
+The generator should produce meaningful ambiguity.
+
+As a sanity check, the final dataset should NOT have the true location at rank 1 in ~90%+ of cases purely because of how the generator was written.
+
+A reasonable target is roughly:
+
+- 50–70% rank 1
+- meaningful percentage at ranks 2–5
+- a small but non-zero number beyond rank 5
+
+Do NOT force these exact percentages. They are guardrails to prevent another trivially spatial dataset.
+
+The final observed distribution must be reported rather than hidden.
+
+==================================================
+6. AVOID LABEL LEAKAGE
+==================================================
+
+This is critical.
+
+Do not create a synthetic target that is simply:
+
+"calculate the same formula from the seven features and then train the model to rediscover that exact formula."
+
+The generator may use latent behavioral mechanisms, but avoid making the target a trivial deterministic copy of the final model feature score.
+
+In particular:
+
+- do not define y using exactly the same GBDT features with a fixed hand-written weighted sum
+- do not make distance_rank itself the ground truth
+- do not set the true location to argmax(distance-based score)
+
+The objective is to create a more realistic synthetic benchmark.
+
+==================================================
+7. TEMPORAL STRUCTURE
+==================================================
+
+Generate events chronologically.
+
+Maintain an event-level temporal train/test split.
+
+For example:
+
+- oldest ~80% of EVENTS = training
+- newest ~20% of EVENTS = held-out test
+
+Do not randomly split candidate rows independently.
+
+All candidates belonging to an event must remain in the same split.
+
+If location historical-fraud counts are time-dependent, ensure the feature available for an event only uses information available before that event.
+
+Avoid future information leakage.
+
+Document exactly how this is handled.
+
+==================================================
+8. CASE DATASET EXPANSION
+==================================================
+
+Also increase the synthetic investigation/case dataset.
+
+Inspect how the current cases are generated and consumed.
+
+Increase the number of synthetic cases substantially, while preserving the existing demo cases.
+
+Target approximately:
+
+- 500–1,000 synthetic investigation cases
+
+or the closest sensible number supported by the current schema.
+
+Cases should have realistic variation in:
+
+- case amount
+- timestamps
+- complaint metadata
+- mule/network characteristics
+- transaction counts
+- geographic information
+- risk levels
+- associated cash-out events
+
+Do not break:
+
+- existing case IDs
+- frontend case selection
+- Supabase schema
+- existing demo flow
+
+The purpose is to give the project a more convincing prototype dataset, not to clutter the UI with thousands of records if the frontend only needs a representative subset.
+
+If the UI should only display a manageable number, preserve that behavior while keeping the larger dataset available to the ML/evaluation pipeline.
+
+==================================================
+9. RETRAIN THE MODEL
+==================================================
+
+Because the training data is changing, retrain the GradientBoostingClassifier legitimately.
+
+Keep the current production model family unless there is a strong technical reason not to:
+
+sklearn.ensemble.GradientBoostingClassifier
+
+Keep the current hyperparameters unless experiments demonstrate that the larger dataset requires a justified adjustment.
+
+Current configuration:
+
+- n_estimators = 50
+- max_depth = 3
+- learning_rate = 0.1
+- random_state = 42
+
+Do not tune repeatedly against the held-out test set.
+
+If tuning is necessary, use the training portion only.
+
+The final test set must remain untouched until final evaluation.
+
+==================================================
+10. KEEP EXACTLY THESE 7 PRODUCTION FEATURES
+==================================================
+
+The production feature schema remains:
+
+1. distance_km
+2. historical_fraud_count
+3. cctv_available
+4. is_csp
+5. case_amount
+6. cashout_hour
+7. distance_rank
+
+Do not add or remove production features in this task.
+
+Python and TypeScript must continue to produce exactly these seven features in exactly this order.
+
+==================================================
+11. REGENERATE THE PRODUCTION MODEL ARTIFACT
+==================================================
+
+Because the model is being retrained, regenerate the exported production model artifact.
+
+Production architecture remains:
+
+Python/scikit-learn
+    ↓
+export trained GBDT
+    ↓
+TypeScript/Deno tree evaluator
+    ↓
+Supabase Edge Function
+    ↓
+Next.js/Vercel frontend
+
+Do NOT introduce Python inference into production.
+
+Update the model version to a new explicit version, for example:
+
+SIH-ML-Cashout-GBClassifier-v3.0.0
+
+Use whatever version convention already exists, but it must clearly distinguish this retrained model from v2.0.0.
+
+==================================================
+12. VERIFY PYTHON ↔ TYPESCRIPT PARITY
+==================================================
+
+Run the existing parity tests.
+
+Verify:
+
+- exactly 7 features
+- exact ordering
+- identical Haversine calculation
+- identical distance rounding
+- identical distance ranking
+- identical boolean conversion
+- identical model inference
+
+Maximum numerical difference should remain effectively zero, ideally:
+
+< 1e-6
+
+Do not accept silent discrepancies.
+
+==================================================
+13. RE-RUN THE COMPLETE EVALUATION
+==================================================
+
+Run:
+
+python -m unittest discover tests
+
+python -m evaluation.run_experiment
+
+python -m evaluation.run_ablation_experiments
+
+If the scripts have different current paths, use the actual current project commands.
+
+Report:
+
+Dataset:
+- number of events
+- number of candidate rows
+- positive/negative counts
+- number of cases
+- number of candidate locations
+- train/test event counts
+
+Ranking:
+- Recall@1
+- Recall@3
+- Recall@4 or equivalent
+- MRR
+- Precision@1 where applicable
+- Precision@K / Recall@K where applicable
+
+Binary discrimination:
+- ROC-AUC
+- PR-AUC
+- F1
+- precision
+- recall
+
+Baselines:
+- pure distance ranking
+- old heuristic if still available
+- distance-only GBDT
+- full GBDT
+
+Ablation:
+- distance only
+- distance + historical fraud
+- + CCTV/CSP
+- + amount/hour
+- distance_rank
+- full model
+
+==================================================
+14. IMPORTANT: DO NOT CHERRY-PICK A BETTER RESULT
+==================================================
+
+The purpose is NOT:
+
+"make Recall@1 go from 90% to 95%."
+
+The purpose is:
+
+"create a larger, less spatially trivial, scientifically defensible synthetic benchmark."
+
+If the final full model performs worse than the old benchmark, report that honestly.
+
+If the full model improves over distance-only, report it.
+
+If distance still dominates, report it.
+
+If contextual features now provide incremental value, demonstrate that through ablation rather than claiming it.
+
+Do not modify the generator repeatedly until the desired metrics appear.
+
+Maximum of one meaningful dataset redesign followed by final evaluation.
+
+==================================================
+15. SYNTHETIC DATASET SANITY CHECKS
+==================================================
+
+Add/run sanity checks for:
+
+- true-location rank distribution
+- candidate count distribution
+- distance distribution
+- historical fraud distribution
+- CCTV distribution
+- ATM/CSP distribution
+- case amount distribution
+- cash-out hour distribution
+- duplicate event IDs
+- duplicate candidate IDs
+- missing coordinates
+- impossible coordinates
+- train/test temporal ordering
+- label balance
+- candidate leakage
+- future information leakage
+
+Explicitly report:
+
+"true cash-out location rank distribution"
+
+because this is the most important diagnostic for the spatial-bias problem.
+
+==================================================
+16. PRODUCTION ENDPOINT VERIFICATION
+==================================================
+
+Run the local Supabase stack.
+
+Verify:
+
+POST /cases/CASE-2026-4401/predict-cashout
+
+returns:
+
+- HTTP 200
+- correct case ID
+- ranked candidate locations
+- probability scores
+- distances
+- reason factors
+- new model_version
+
+The response must identify the new retrained model version.
+
+Confirm the frontend receives the actual backend response.
+
+There must be NO silent seeded/heuristic fallback for cash-out prediction.
+
+==================================================
+17. FRONTEND VERIFICATION
+==================================================
+
+Run:
+
+cd frontend
+npm run build
+
+Then run the frontend locally and verify:
+
+- Cash-Out Prediction page loads
+- case selector works
+- Run Prediction works
+- ranked locations appear
+- probabilities appear
+- map renders
+- model version shown in UI corresponds to the new model
+- no console errors
+- no network errors
+
+Do not redesign the page.
+
+==================================================
+18. DO NOT TOUCH UNRELATED SYSTEMS
+==================================================
+
+Do not modify:
+
+- frontend styling
+- architecture
+- Vercel configuration
+- Supabase architecture
+- authentication
+- Leaflet implementation
+- unrelated anomaly detection model
+- unrelated risk engine
+- unrelated pages
+
+Only modify what is required for:
+
+- larger synthetic dataset
+- improved cash-out event/case generation
+- retraining
+- model export
+- evaluation
+- tests
+- seed/migration data required for the larger dataset
+
+==================================================
+19. FINAL GIT DIFF SANITY CHECK
+==================================================
+
+Before committing:
+
+git status
+git diff --stat
+git diff
+
+Verify there are no:
+
+- __pycache__
+- .next
+- node_modules
+- .env
+- .env.local
+- secrets
+- temporary model files
+- debug files
+
+Only intended project files should be committed.
+
+==================================================
+20. CREATE A FINAL ML RESULTS REPORT
+==================================================
+
+Create a Markdown report in the repository, for example:
+
+docs/ML_FINAL_RESULTS.md
+
+The report must contain:
+
+1. Executive summary
+2. Dataset size before vs after
+3. Synthetic data generation methodology
+4. Ground-truth construction
+5. Candidate generation
+6. Seven production features
+7. Train/test methodology
+8. Model architecture
+9. Production inference architecture
+10. Main benchmark results
+11. Distance-only baseline
+12. Old heuristic baseline
+13. Feature ablation results
+14. True-location rank distribution
+15. Feature importance
+16. Error analysis
+17. False-positive / false-negative discussion
+18. Limitations of synthetic data
+19. Why real authorized operational data is still required
+20. Final conclusion
+
+Be scientifically honest.
+
+Do NOT write:
+"99.1% accuracy"
+
+if the metric is ROC-AUC.
+
+Use exact metric names.
+
+Explicitly explain the difference between:
+
+- ranking performance
+- binary discrimination
+- calibration
+
+Do not call ROC-AUC or PR-AUC calibration.
+
+==================================================
+21. UPDATE PROJECT DOCUMENTATION ONLY WHERE NEEDED
+==================================================
+
+If README or existing ML documentation contains the old:
+
+- dataset size
+- model version
+- metrics
+- feature count
+- benchmark numbers
+
+update those values to the final verified values.
+
+Do not rewrite unrelated README content.
+
+==================================================
+22. FINAL VERIFICATION REPORT TO ME
+==================================================
+
+At the end, give me a concise but complete report containing:
+
+A. Files changed
+B. Dataset size before/after
+C. Number of cases before/after
+D. Candidate locations
+E. Positive/negative counts
+F. True-location rank distribution
+G. Feature list
+H. Model version
+I. Training/test split
+J. Recall@1
+K. Recall@3
+L. MRR
+M. ROC-AUC
+N. PR-AUC
+O. F1
+P. Distance-only results
+Q. Full-model results
+R. Ablation results
+S. Python/TypeScript parity
+T. Unit tests
+U. Frontend build
+V. Supabase endpoint test
+W. Git diff summary
+
+Explicitly state whether the new model provides measurable improvement over the distance-only baseline.
+
+==================================================
+23. GIT COMMIT + PUSH
+==================================================
+
+ONLY AFTER all tests pass and I have verified that the final state is coherent:
+
+Commit the changes with a clear message such as:
+
+"Expand synthetic cashout dataset and retrain ML model"
+
+Then push to the configured GitHub remote and main branch.
+
+Before pushing, verify:
+
+git status
+
+and confirm there are no uncommitted intended changes left behind.
+
+Do NOT force push.
+
+Do NOT rewrite history.
+
+==================================================
+FINAL REQUIREMENT
+==================================================
+
+This is the FINAL ML implementation change.
+
+After this:
+
+DO NOT propose another model redesign.
+
+Freeze the model and dataset.
+
+The next step will be preparing the final SIH ML findings/report from the verified numbers.
+
+IMPORTANT ADDITION — LANDING PAGE VISUALIZATION
+
+Inspect the current landing page / Command Center / hotspot visualization and determine exactly where its plotted geographic points come from.
+
+Do NOT assume the ML training dataset automatically feeds the landing page.
+
+If the landing visualization uses the same synthetic cash-out/case/location data, update the data pipeline so the expanded dataset is represented there as well.
+
+However, DO NOT render thousands of individual raw events as thousands of map points.
+
+Instead:
+
+1. Preserve the existing landing-page visualization design.
+2. Aggregate nearby events geographically into meaningful hotspot clusters/cells.
+3. Use the expanded synthetic events to calculate hotspot intensity/density.
+4. Display a reasonable number of representative hotspots rather than one marker per event.
+5. Preserve existing demo hotspots and important named locations.
+6. Ensure the visualization remains responsive and readable.
+7. Do not change the frontend's visual design or layout.
+8. Clearly separate:
+   - raw ML training events
+   - investigation cases
+   - aggregated visualization hotspots
+
+After implementation, report:
+- where the landing page gets its data from
+- whether the expanded dataset feeds it
+- number of raw events
+- number of aggregated hotspots displayed
+- exact files/database seed/migration changed
+- whether existing demo locations remain visible
+</USER_REQUEST>
+<ADDITIONAL_METADATA>
+The current local time is: 2026-10-05T00:19:59+05:30.
+
+The user's current state is as follows:
+Active Document: c:\Users\priya\Documents\Coding\UPIShield\requirements.txt (LANGUAGE_UNSPECIFIED)
+Cursor is on line: 9
+Other open documents:
+- c:\Users\priya\Documents\Coding\UPIShield\src\cashout_features.py (LANGUAGE_UNSPECIFIED)
+- c:\Users\priya\Documents\Coding\UPIShield\supabase\functions\_shared\cashout_features.ts (LANGUAGE_UNSPECIFIED)
+- c:\Users\priya\Documents\Coding\UPIShield\evaluation\evaluate_cashout_model.py (LANGUAGE_UNSPECIFIED)
+- c:\Users\priya\Documents\Coding\UPIShield\evaluation\run_experiment.py (LANGUAGE_UNSPECIFIED)
+- c:\Users\priya\Documents\Coding\UPIShield\training\export_model.py (LANGUAGE_UNSPECIFIED)
+</ADDITIONAL_METADATA>
+<USER_SETTINGS_CHANGE>
+The user changed setting `Model Selection` from Gemini 3.6 Flash (High) to Gemini 3.8 Flash (High). No need to comment on this change if the user doesn't ask about it. If reporting what model you are, please use a human readable name instead of the exact string.
+</USER_SETTINGS_CHANGE>

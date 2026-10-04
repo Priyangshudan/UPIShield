@@ -1,0 +1,7 @@
+feature,importance
+distance_km,0.793954
+historical_fraud_count,0.190388
+cashout_hour,0.007435
+cctv_available,0.00454
+is_csp,0.002633
+case_amount,0.001049

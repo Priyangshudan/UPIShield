@@ -69,7 +69,9 @@ CREATE TABLE IF NOT EXISTS public.historical_cashouts (
     withdrawal_time TIMESTAMP WITH TIME ZONE NOT NULL,
     distance_from_last_hop_km DOUBLE PRECISION NOT NULL,
     mule_account_id TEXT NOT NULL,
-    successful INTEGER NOT NULL DEFAULT 1
+    successful INTEGER NOT NULL DEFAULT 1,
+    last_hop_lat DOUBLE PRECISION NOT NULL DEFAULT 28.7120,
+    last_hop_lon DOUBLE PRECISION NOT NULL DEFAULT 77.1190
 );
 
 -- 6. Alerts Table

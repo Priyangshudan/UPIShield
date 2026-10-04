@@ -204,21 +204,17 @@ export async function fetchCaseNetwork(caseId: string): Promise<EntityNetworkGra
  * 7. Cashout Location Prediction
  */
 export async function predictCashout(caseId: string): Promise<CashoutPredictionResponse> {
-  try {
-    const res = await fetchWithTimeout(`${getApiBase()}/cases/${encodeURIComponent(caseId)}/predict-cashout`, {
-      method: "POST",
-      cache: "no-store",
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.predicted_locations && data.predicted_locations.length > 0) {
-        return data;
-      }
+  const res = await fetchWithTimeout(`${getApiBase()}/cases/${encodeURIComponent(caseId)}/predict-cashout`, {
+    method: "POST",
+    cache: "no-store",
+  });
+  if (res.ok) {
+    const data = await res.json();
+    if (data && data.predicted_locations && data.predicted_locations.length > 0) {
+      return data;
     }
-  } catch {
-    // Fallback
   }
-  return predictSeededCashout(caseId);
+  throw new Error(`Failed to execute ML cash-out prediction model for docket ${caseId} (${res.status} ${res.statusText}).`);
 }
 
 /**

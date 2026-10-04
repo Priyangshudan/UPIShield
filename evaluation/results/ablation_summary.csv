@@ -1,0 +1,8 @@
+experiment,feature_set,recall_at_1,recall_at_3,recall_at_4,mrr,roc_auc,pr_auc,f1
+Baseline (Pure Dist Rank),distance_km (Pure Rank),0.9,1.0,1.0,0.9467,N/A,N/A,N/A
+Baseline (Old Heuristic),dist + fraud + csp - cctv (Formula),0.24,0.46,0.78,0.4587,N/A,N/A,N/A
+Set A: Distance only (GBDT),distance_km,0.92,1.0,1.0,0.9567,0.978,0.8671,0.7692
+Set B: Distance + historical fraud,"distance_km, historical_fraud_count",0.84,1.0,1.0,0.9167,0.9848,0.9117,0.7872
+Set C: Distance + historical fraud + kiosk security,"distance_km, historical_fraud_count, cctv_available, is_csp",0.84,1.0,1.0,0.9167,0.9847,0.9116,0.7742
+Set D: Add case context (Without distance_rank),"distance_km, historical_fraud_count, cctv_available, is_csp, case_amount, cashout_hour",0.84,1.0,1.0,0.9133,0.9856,0.9184,0.7872
+Set E: Full current model (With distance_rank),"distance_km, historical_fraud_count, cctv_available, is_csp, case_amount, cashout_hour, distance_rank",0.9,1.0,1.0,0.9467,0.991,0.9517,0.8958

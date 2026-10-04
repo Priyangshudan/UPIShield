@@ -1,0 +1,24 @@
+{
+  "experiment": "Ablation Model (Without distance_rank)",
+  "features": [
+    "distance_km",
+    "historical_fraud_count",
+    "cctv_available",
+    "is_csp",
+    "case_amount",
+    "cashout_hour"
+  ],
+  "test_events": 50,
+  "metrics": {
+    "recall_at_1": 0.84,
+    "recall_at_3": 1.0,
+    "recall_at_4": 1.0,
+    "mrr": 0.9133,
+    "precision_at_1": 0.84,
+    "precision_at_3": 0.3333,
+    "precision_at_4": 0.25,
+    "roc_auc": 0.9856,
+    "pr_auc": 0.9184,
+    "f1": 0.7872
+  }
+}

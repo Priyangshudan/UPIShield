@@ -1,0 +1,21 @@
+{
+  "num_events": 250,
+  "num_locations_per_event": 8,
+  "rank_distribution": {
+    "rank_1": {
+      "count": 215,
+      "percentage": 86.0
+    },
+    "rank_2": {
+      "count": 24,
+      "percentage": 9.6
+    },
+    "rank_3": {
+      "count": 11,
+      "percentage": 4.4
+    }
+  },
+  "mean_actual_location_distance_km": 2.5504,
+  "median_actual_location_distance_km": 2.4284,
+  "mean_nearest_candidate_distance_km": 2.3767
+}

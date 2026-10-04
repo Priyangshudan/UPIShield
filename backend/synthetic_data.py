@@ -6,8 +6,19 @@ multi-hop transaction trails, Delhi-NCR ATM/CSP locations, and historical cashou
 
 import random
 import json
+import math
 from datetime import datetime, timedelta
 from backend.database import get_db_connection, init_database
+
+
+def _calc_haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    R = 6371.0
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2)**2 + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2)**2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    return R * c
+
 
 
 def seed_cybercrime_data(seed: int = 42):
@@ -376,14 +387,18 @@ def seed_cybercrime_data(seed: int = 42):
             k=1
         )[0]
         cash_amt = round(random.choice([10000, 20000, 40000, 50000, 80000, 100000]), 2)
-        dist = round(max(0.2, random.normalvariate(2.8, 1.4)), 2)
+        lat_offset = random.normalvariate(0, 0.02)
+        lon_offset = random.normalvariate(0, 0.02)
+        last_hop_lat = round(loc["latitude"] + lat_offset, 6)
+        last_hop_lon = round(loc["longitude"] + lon_offset, 6)
+        dist = round(_calc_haversine(last_hop_lat, last_hop_lon, loc["latitude"], loc["longitude"]), 2)
         w_time = base_time + timedelta(days=random.randint(0, 50), hours=random.randint(11, 19), minutes=random.randint(0, 59))
         mule_acc = f"MULE-HIST-{random.randint(100, 999)}"
 
         cursor.execute("""
-        INSERT INTO historical_cashouts (id, location_id, amount, withdrawal_time, distance_from_last_hop_km, mule_account_id, successful)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (f"CASH-{1000+i}", loc["id"], cash_amt, w_time.strftime("%Y-%m-%d %H:%M:%S"), dist, mule_acc, 1))
+        INSERT INTO historical_cashouts (id, location_id, amount, withdrawal_time, distance_from_last_hop_km, mule_account_id, successful, last_hop_lat, last_hop_lon)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (f"CASH-{1000+i}", loc["id"], cash_amt, w_time.strftime("%Y-%m-%d %H:%M:%S"), dist, mule_acc, 1, last_hop_lat, last_hop_lon))
 
     # 6. Default Alerts
     alerts = [

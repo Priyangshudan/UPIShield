@@ -96,6 +96,8 @@ def init_database():
         distance_from_last_hop_km REAL NOT NULL,
         mule_account_id TEXT NOT NULL,
         successful INTEGER NOT NULL,
+        last_hop_lat REAL DEFAULT 28.7120,
+        last_hop_lon REAL DEFAULT 77.1190,
         FOREIGN KEY (location_id) REFERENCES locations(id)
     );
     """)

@@ -1,0 +1,79 @@
+[
+  {
+    "experiment": "Baseline (Pure Dist Rank)",
+    "feature_set": "distance_km (Pure Rank)",
+    "recall_at_1": 0.9,
+    "recall_at_3": 1.0,
+    "recall_at_4": 1.0,
+    "mrr": 0.9467,
+    "roc_auc": "N/A",
+    "pr_auc": "N/A",
+    "f1": "N/A"
+  },
+  {
+    "experiment": "Baseline (Old Heuristic)",
+    "feature_set": "dist + fraud + csp - cctv (Formula)",
+    "recall_at_1": 0.24,
+    "recall_at_3": 0.46,
+    "recall_at_4": 0.78,
+    "mrr": 0.4587,
+    "roc_auc": "N/A",
+    "pr_auc": "N/A",
+    "f1": "N/A"
+  },
+  {
+    "experiment": "Set A: Distance only (GBDT)",
+    "feature_set": "distance_km",
+    "recall_at_1": 0.92,
+    "recall_at_3": 1.0,
+    "recall_at_4": 1.0,
+    "mrr": 0.9567,
+    "roc_auc": 0.978,
+    "pr_auc": 0.8671,
+    "f1": 0.7692
+  },
+  {
+    "experiment": "Set B: Distance + historical fraud",
+    "feature_set": "distance_km, historical_fraud_count",
+    "recall_at_1": 0.84,
+    "recall_at_3": 1.0,
+    "recall_at_4": 1.0,
+    "mrr": 0.9167,
+    "roc_auc": 0.9848,
+    "pr_auc": 0.9117,
+    "f1": 0.7872
+  },
+  {
+    "experiment": "Set C: Distance + historical fraud + kiosk security",
+    "feature_set": "distance_km, historical_fraud_count, cctv_available, is_csp",
+    "recall_at_1": 0.84,
+    "recall_at_3": 1.0,
+    "recall_at_4": 1.0,
+    "mrr": 0.9167,
+    "roc_auc": 0.9847,
+    "pr_auc": 0.9116,
+    "f1": 0.7742
+  },
+  {
+    "experiment": "Set D: Add case context (Without distance_rank)",
+    "feature_set": "distance_km, historical_fraud_count, cctv_available, is_csp, case_amount, cashout_hour",
+    "recall_at_1": 0.84,
+    "recall_at_3": 1.0,
+    "recall_at_4": 1.0,
+    "mrr": 0.9133,
+    "roc_auc": 0.9856,
+    "pr_auc": 0.9184,
+    "f1": 0.7872
+  },
+  {
+    "experiment": "Set E: Full current model (With distance_rank)",
+    "feature_set": "distance_km, historical_fraud_count, cctv_available, is_csp, case_amount, cashout_hour, distance_rank",
+    "recall_at_1": 0.9,
+    "recall_at_3": 1.0,
+    "recall_at_4": 1.0,
+    "mrr": 0.9467,
+    "roc_auc": 0.991,
+    "pr_auc": 0.9517,
+    "f1": 0.8958
+  }
+]

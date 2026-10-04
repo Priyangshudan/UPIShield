@@ -1,0 +1,74 @@
+{
+  "model": "GradientBoostingClassifier",
+  "model_version": "SIH-ML-Cashout-GBClassifier-v2.0.0",
+  "dataset": "Delhi-NCR Synthetic Cybercrime Historical Cashouts",
+  "train_events": 200,
+  "test_events": 50,
+  "candidate_rows": 2000,
+  "positive_examples": 250,
+  "negative_examples": 1750,
+  "metrics": {
+    "recall_at_1": 0.9,
+    "recall_at_3": 1.0,
+    "recall_at_4": 1.0,
+    "mrr": 0.9467,
+    "precision_at_1": 0.9,
+    "precision_at_3": 0.3333,
+    "precision_at_4": 0.25,
+    "roc_auc": 0.991,
+    "pr_auc": 0.9517,
+    "f1": 0.8958
+  },
+  "baseline_metrics": {
+    "recall_at_1": 0.24,
+    "recall_at_3": 0.46,
+    "recall_at_4": 0.78,
+    "mrr": 0.4587
+  },
+  "feature_importances": [
+    {
+      "feature": "distance_rank",
+      "importance": 0.769741
+    },
+    {
+      "feature": "historical_fraud_count",
+      "importance": 0.113007
+    },
+    {
+      "feature": "distance_km",
+      "importance": 0.104811
+    },
+    {
+      "feature": "cashout_hour",
+      "importance": 0.010603
+    },
+    {
+      "feature": "case_amount",
+      "importance": 0.001378
+    },
+    {
+      "feature": "cctv_available",
+      "importance": 0.00046
+    },
+    {
+      "feature": "is_csp",
+      "importance": 0.0
+    }
+  ],
+  "sample_prediction_explanation": {
+    "event_id": "CASH-1053",
+    "top_candidate_name": "ICICI Bank ATM (Noida Sector 18)",
+    "rank": 1,
+    "predicted_probability": 0.8506666899560521,
+    "actual_ground_truth_label": 1,
+    "candidate_features": {
+      "distance_km": 2.9864,
+      "historical_fraud_count": 8.0,
+      "cctv_available": 1.0,
+      "is_csp": 0.0,
+      "case_amount": 80000.0,
+      "cashout_hour": 3.0,
+      "distance_rank": 1.0
+    }
+  }
+}
