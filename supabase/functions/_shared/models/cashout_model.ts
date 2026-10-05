@@ -22,7 +22,7 @@ export const CASHOUT_MODEL_DATA = {
     "total_samples": 28000,
     "positive_samples": 2000,
     "negative_samples": 26000,
-    "trained_at": "2026-10-05T22:00:39.888550"
+    "trained_at": "2026-10-05T23:54:26.873604"
   },
   "trees": [
     {
