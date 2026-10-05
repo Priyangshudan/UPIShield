@@ -10,13 +10,13 @@ import numpy as np
 import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
 
-from src.cashout_features import FEATURE_NAMES, build_candidate_feature_vectors
+from src.cashout_features import FEATURE_NAMES, build_candidate_feature_vectors, haversine_distance
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "sih_cybercrime.db")
 
 
 def load_evaluation_data(db_path: str = DB_PATH):
-    """Loads historical cashout events and locations from DB."""
+    """Loads historical cashout events and canonical locations from DB."""
     if not os.path.exists(db_path):
         from backend.synthetic_data import seed_cybercrime_data
         seed_cybercrime_data()
@@ -26,7 +26,10 @@ def load_evaluation_data(db_path: str = DB_PATH):
     cursor = conn.cursor()
 
     cashouts = [dict(r) for r in cursor.execute("SELECT * FROM historical_cashouts WHERE successful = 1").fetchall()]
-    locations = [dict(r) for r in cursor.execute("SELECT * FROM locations").fetchall()]
+    # Select distinct canonical locations (prefer LOC-DEL-* to avoid duplicated coordinates)
+    locations = [dict(r) for r in cursor.execute("SELECT * FROM locations WHERE id LIKE 'LOC-DEL-%'").fetchall()]
+    if not locations:
+        locations = [dict(r) for r in cursor.execute("SELECT * FROM locations").fetchall()]
     conn.close()
 
     # Sort cashouts chronologically for temporal splitting capability
@@ -35,9 +38,10 @@ def load_evaluation_data(db_path: str = DB_PATH):
     return cashouts, locations
 
 
-def build_event_groups(cashouts: list, locations: list):
+def build_event_groups(cashouts: list, locations: list, candidates_per_event: int = 14):
     """
-    Builds event-grouped structures where each event contains candidate locations and ground truth labels.
+    Builds event-grouped structures where each event contains candidate locations (default 14)
+    and ground truth labels.
     """
     events_data = []
 
@@ -52,21 +56,40 @@ def build_event_groups(cashouts: list, locations: list):
         except Exception:
             hour = 14.0
 
+        last_hop_lat = float(event.get("last_hop_lat", 28.7120))
+        last_hop_lon = float(event.get("last_hop_lon", 77.1190))
+
         event_info = {
             "event_id": event_id,
-            "last_hop_lat": float(event.get("last_hop_lat", 28.7120)),
-            "last_hop_lon": float(event.get("last_hop_lon", 77.1190)),
+            "last_hop_lat": last_hop_lat,
+            "last_hop_lon": last_hop_lon,
             "amount": float(event.get("amount", 270000.0)),
             "hour": hour,
             "withdrawal_time": w_time_str,
             "actual_location_id": actual_loc_id
         }
 
+        # Select candidates for this event (closest candidates_per_event to last hop, ensuring actual_loc_id is included)
+        if len(locations) > candidates_per_event:
+            locs_with_dist = []
+            for loc in locations:
+                d = haversine_distance((last_hop_lat, last_hop_lon), (float(loc["latitude"]), float(loc["longitude"])))
+                locs_with_dist.append((d, loc))
+            locs_with_dist.sort(key=lambda x: x[0])
+            event_locs = [x[1] for x in locs_with_dist[:candidates_per_event]]
+            if not any(loc["id"] == actual_loc_id for loc in event_locs):
+                # Ensure actual location is in candidate set
+                actual_loc_obj = next((l for l in locations if l["id"] == actual_loc_id), None)
+                if actual_loc_obj:
+                    event_locs[-1] = actual_loc_obj
+        else:
+            event_locs = list(locations)
+
         # Build feature vectors using shared module
-        feature_vecs = build_candidate_feature_vectors(event_info, locations)
+        feature_vecs = build_candidate_feature_vectors(event_info, event_locs)
 
         candidate_rows = []
-        for loc, vec in zip(locations, feature_vecs):
+        for loc, vec in zip(event_locs, feature_vecs):
             label = 1 if loc["id"] == actual_loc_id else 0
             candidate_rows.append({
                 "event_id": event_id,
@@ -109,4 +132,3 @@ def get_leakage_safe_split(events_data: list, test_ratio: float = 0.2, method: s
         test_events = [events_data[i] for i in test_idx]
 
     return train_events, test_events
-

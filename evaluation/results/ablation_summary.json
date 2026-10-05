@@ -2,10 +2,10 @@
   {
     "experiment": "Baseline (Pure Dist Rank)",
     "feature_set": "distance_km (Pure Rank)",
-    "recall_at_1": 0.9,
-    "recall_at_3": 1.0,
-    "recall_at_4": 1.0,
-    "mrr": 0.9467,
+    "recall_at_1": 0.5025,
+    "recall_at_3": 0.7675,
+    "recall_at_4": 0.8425,
+    "mrr": 0.6649,
     "roc_auc": "N/A",
     "pr_auc": "N/A",
     "f1": "N/A"
@@ -13,10 +13,10 @@
   {
     "experiment": "Baseline (Old Heuristic)",
     "feature_set": "dist + fraud + csp - cctv (Formula)",
-    "recall_at_1": 0.24,
-    "recall_at_3": 0.46,
-    "recall_at_4": 0.78,
-    "mrr": 0.4587,
+    "recall_at_1": 0.2025,
+    "recall_at_3": 0.3675,
+    "recall_at_4": 0.45,
+    "mrr": 0.3685,
     "roc_auc": "N/A",
     "pr_auc": "N/A",
     "f1": "N/A"
@@ -24,56 +24,56 @@
   {
     "experiment": "Set A: Distance only (GBDT)",
     "feature_set": "distance_km",
-    "recall_at_1": 0.92,
-    "recall_at_3": 1.0,
-    "recall_at_4": 1.0,
-    "mrr": 0.9567,
-    "roc_auc": 0.978,
-    "pr_auc": 0.8671,
-    "f1": 0.7692
+    "recall_at_1": 0.5,
+    "recall_at_3": 0.7775,
+    "recall_at_4": 0.845,
+    "mrr": 0.6628,
+    "roc_auc": 0.8937,
+    "pr_auc": 0.3745,
+    "f1": 0.2222
   },
   {
     "experiment": "Set B: Distance + historical fraud",
     "feature_set": "distance_km, historical_fraud_count",
-    "recall_at_1": 0.84,
-    "recall_at_3": 1.0,
-    "recall_at_4": 1.0,
-    "mrr": 0.9167,
-    "roc_auc": 0.9848,
-    "pr_auc": 0.9117,
-    "f1": 0.7872
+    "recall_at_1": 0.55,
+    "recall_at_3": 0.8225,
+    "recall_at_4": 0.88,
+    "mrr": 0.7051,
+    "roc_auc": 0.9206,
+    "pr_auc": 0.5157,
+    "f1": 0.3839
   },
   {
     "experiment": "Set C: Distance + historical fraud + kiosk security",
     "feature_set": "distance_km, historical_fraud_count, cctv_available, is_csp",
-    "recall_at_1": 0.84,
-    "recall_at_3": 1.0,
-    "recall_at_4": 1.0,
-    "mrr": 0.9167,
-    "roc_auc": 0.9847,
-    "pr_auc": 0.9116,
-    "f1": 0.7742
+    "recall_at_1": 0.56,
+    "recall_at_3": 0.845,
+    "recall_at_4": 0.905,
+    "mrr": 0.714,
+    "roc_auc": 0.9265,
+    "pr_auc": 0.5399,
+    "f1": 0.4281
   },
   {
     "experiment": "Set D: Add case context (Without distance_rank)",
     "feature_set": "distance_km, historical_fraud_count, cctv_available, is_csp, case_amount, cashout_hour",
-    "recall_at_1": 0.84,
-    "recall_at_3": 1.0,
-    "recall_at_4": 1.0,
-    "mrr": 0.9133,
-    "roc_auc": 0.9856,
-    "pr_auc": 0.9184,
-    "f1": 0.7872
+    "recall_at_1": 0.5675,
+    "recall_at_3": 0.835,
+    "recall_at_4": 0.9025,
+    "mrr": 0.7179,
+    "roc_auc": 0.9266,
+    "pr_auc": 0.5351,
+    "f1": 0.4261
   },
   {
     "experiment": "Set E: Full current model (With distance_rank)",
     "feature_set": "distance_km, historical_fraud_count, cctv_available, is_csp, case_amount, cashout_hour, distance_rank",
-    "recall_at_1": 0.9,
-    "recall_at_3": 1.0,
-    "recall_at_4": 1.0,
-    "mrr": 0.9467,
-    "roc_auc": 0.991,
-    "pr_auc": 0.9517,
-    "f1": 0.8958
+    "recall_at_1": 0.5375,
+    "recall_at_3": 0.8475,
+    "recall_at_4": 0.905,
+    "mrr": 0.7041,
+    "roc_auc": 0.9335,
+    "pr_auc": 0.5685,
+    "f1": 0.4553
   }
 ]

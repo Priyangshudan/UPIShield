@@ -116,7 +116,7 @@ def run_full_experiment():
     metrics_json_path = os.path.join(results_dir, "metrics.json")
     results_payload = {
         "model": "GradientBoostingClassifier",
-        "model_version": "SIH-ML-Cashout-GBClassifier-v2.0.0",
+        "model_version": "SIH-ML-Cashout-GBClassifier-v3.0.0",
         "dataset": "Delhi-NCR Synthetic Cybercrime Historical Cashouts",
         "train_events": len(train_events),
         "test_events": len(test_events),
@@ -162,7 +162,7 @@ def run_full_experiment():
     model_payload = export_gb_model_to_json(
         model=clf,
         feature_names=FEATURE_NAMES,
-        model_version="SIH-ML-Cashout-GBClassifier-v2.0.0",
+        model_version="SIH-ML-Cashout-GBClassifier-v3.0.0",
         metadata={
             "train_events": len(train_events),
             "test_events": len(test_events),

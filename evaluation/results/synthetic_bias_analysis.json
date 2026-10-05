@@ -1,21 +1,31 @@
 {
-  "num_events": 250,
-  "num_locations_per_event": 8,
-  "rank_distribution": {
-    "rank_1": {
-      "count": 215,
-      "percentage": 86.0
-    },
-    "rank_2": {
-      "count": 24,
-      "percentage": 9.6
-    },
-    "rank_3": {
-      "count": 11,
-      "percentage": 4.4
-    }
+  "total_events": 2000,
+  "all_events_distribution": {
+    "rank_1_count": 1026,
+    "rank_1_pct": 51.3,
+    "rank_2_count": 378,
+    "rank_2_pct": 18.9,
+    "rank_3_count": 188,
+    "rank_3_pct": 9.4,
+    "rank_4_count": 124,
+    "rank_4_pct": 6.2,
+    "rank_5_plus_count": 284,
+    "rank_5_plus_pct": 14.2,
+    "mean_rank": 2.389,
+    "median_rank": 1.0
   },
-  "mean_actual_location_distance_km": 2.5504,
-  "median_actual_location_distance_km": 2.4284,
-  "mean_nearest_candidate_distance_km": 2.3767
+  "test_events_distribution": {
+    "rank_1_count": 201,
+    "rank_1_pct": 50.25,
+    "rank_2_count": 72,
+    "rank_2_pct": 18.0,
+    "rank_3_count": 34,
+    "rank_3_pct": 8.5,
+    "rank_4_count": 30,
+    "rank_4_pct": 7.5,
+    "rank_5_plus_count": 63,
+    "rank_5_plus_pct": 15.75,
+    "mean_rank": 2.462,
+    "median_rank": 1.0
+  }
 }

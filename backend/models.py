@@ -92,7 +92,7 @@ class CashoutPredictionResponse(BaseModel):
     case_id: str
     target_amount: float
     predicted_locations: List[CashoutPredictionItem]
-    model_version: str = "SIH-ML-Cashout-GradientTree-v1.0"
+    model_version: str = "SIH-ML-Cashout-GBClassifier-v3.0.0"
     methodology_note: str
     recommended_actions: List[str]
 

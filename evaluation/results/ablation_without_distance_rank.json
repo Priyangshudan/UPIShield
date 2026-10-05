@@ -8,17 +8,17 @@
     "case_amount",
     "cashout_hour"
   ],
-  "test_events": 50,
+  "test_events": 400,
   "metrics": {
-    "recall_at_1": 0.84,
-    "recall_at_3": 1.0,
-    "recall_at_4": 1.0,
-    "mrr": 0.9133,
-    "precision_at_1": 0.84,
-    "precision_at_3": 0.3333,
-    "precision_at_4": 0.25,
-    "roc_auc": 0.9856,
-    "pr_auc": 0.9184,
-    "f1": 0.7872
+    "recall_at_1": 0.5675,
+    "recall_at_3": 0.835,
+    "recall_at_4": 0.9025,
+    "mrr": 0.7179,
+    "precision_at_1": 0.5675,
+    "precision_at_3": 0.2783,
+    "precision_at_4": 0.2256,
+    "roc_auc": 0.9266,
+    "pr_auc": 0.5351,
+    "f1": 0.4261
   }
 }

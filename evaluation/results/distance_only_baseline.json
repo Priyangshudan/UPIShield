@@ -1,8 +1,8 @@
 {
   "experiment": "Distance-Only Baseline (Pure Spatial Proximity Rank)",
-  "test_events": 50,
-  "recall_at_1": 0.9,
-  "recall_at_3": 1.0,
-  "recall_at_4": 1.0,
-  "mrr": 0.9467
+  "test_events": 400,
+  "recall_at_1": 0.5025,
+  "recall_at_3": 0.7675,
+  "recall_at_4": 0.8425,
+  "mrr": 0.6649
 }

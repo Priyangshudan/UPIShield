@@ -174,7 +174,7 @@ export async function predictCaseCashout(caseId: string, supabaseClient: any): P
   const items = await predictTopLocations(target_amount, last_coord, incident_hour, 4, supabaseClient);
 
   const methodology =
-    "Supervised Gradient Boosting Classifier model (v2.0.0) trained on synthetic historical cash withdrawals. " +
+    "Supervised Gradient Boosting Classifier model (v3.0.0) trained on synthetic historical cash withdrawals. " +
     "Evaluated geodesic spatial proximity to runner hop, kiosk historical fraud density, " +
     "CSP agent vulnerability index, CCTV presence, transaction amount, and incident hour.";
 
@@ -188,7 +188,7 @@ export async function predictCaseCashout(caseId: string, supabaseClient: any): P
     case_id: caseId,
     target_amount,
     predicted_locations: items,
-    model_version: "SIH-ML-Cashout-GBClassifier-v2.0.0",
+    model_version: "SIH-ML-Cashout-GBClassifier-v3.0.0",
     methodology_note: methodology,
     recommended_actions
   };
